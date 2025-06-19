@@ -11,10 +11,16 @@ app.get('/', (req, res) => {
 app.get('/products', async (req, res) => {
   let browser;
   try {
-    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    console.log('Launching Puppeteer...');
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+    });
     const page = await browser.newPage();
+    console.log('Navigating to https://skygeek.com/akzonobel/...');
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124');
-    await page.goto('https://skygeek.com/akzonobel/', { waitUntil: 'networkidle2' });
+    await page.goto('https://skygeek.com/akzonobel/', { waitUntil: 'networkidle2', timeout: 30000 });
+    console.log('Page loaded, evaluating content...');
 
     const products = await page.evaluate(() => {
       const items = [];
@@ -32,15 +38,22 @@ app.get('/products', async (req, res) => {
     console.log('Found products:', products.length, products);
     res.json(products);
   } catch (error) {
-    console.error('Scraping error:', error.message);
-    res.status(500).json({ error: 'Scraping failed' });
+    console.error('Scraping error:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code
+    });
+    res.status(500).json({ error: 'Scraping failed', details: error.message });
   } finally {
-    if (browser) await browser.close();
+    if (browser) {
+      console.log('Closing browser...');
+      await browser.close();
+    }
   }
 });
 
 app.get('/search', async (req, res) => {
-  res.status(501).json({ error: 'Search not implemented yet' }); // Placeholder
+  res.status(501).json({ error: 'Search not implemented yet' });
 });
 
 const PORT = process.env.PORT;
