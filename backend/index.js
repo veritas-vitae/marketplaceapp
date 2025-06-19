@@ -5,6 +5,11 @@ const app = express();
 
 app.use(express.json());
 
+// Add root route
+app.get('/', (req, res) => {
+  res.send('SkyGeek Marketplace Backend - Visit /products or /search?q=<query>');
+});
+
 app.get('/products', async (req, res) => {
   try {
     const { data } = await axios.get('https://skygeek.com/', {
@@ -45,8 +50,8 @@ app.get('/search', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT; // Remove fallback to 3000
-const HOST = '0.0.0.0'; // Explicitly bind to all interfaces
+const PORT = process.env.PORT;
+const HOST = '0.0.0.0';
 app.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
