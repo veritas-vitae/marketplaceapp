@@ -1,88 +1,46 @@
 const express = require('express');
-const axios = require('axios');
-const cheerio = require('cheerio');
+const puppeteer = require('puppeteer');
 const app = express();
 
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.send('SkyGeek Marketplace Backend - Visit /products or /search?q=<query>');
+  res.send('SkyGeek Marketplace Backend - Visit /products for AkzoNobel items');
 });
 
 app.get('/products', async (req, res) => {
+  let browser;
   try {
-    const { data: html } = await axios.get('https://skygeek.com/', {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124' }
-    });
-    const $ = cheerio.load(html);
-    const skus = [];
-    // Adjust selector based on inspection (e.g., data-sku attribute)
-    $('.product').each((i, el) => {
-      const sku = $(el).attr('data-sku') || $(el).find('a').attr('href')?.match(/sellingSku=([^&]+)/)?.[1];
-      if (sku) skus.push(sku);
-    });
-    console.log('Found SKUs:', skus.length, skus); // Debug log
+    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124');
+    await page.goto('https://skygeek.com/akzonobel/', { waitUntil: 'networkidle2' });
 
-    const products = [];
-    for (const sku of skus.slice(0, 5)) { // Limit to 5 for PoC
-      try {
-        const { data } = await axios.get(`https://api.skygeek.com/PublicApis/api/v0/SkyGeekDotComApi/SellingSkuData?sellingSku=${sku}`, {
-          headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://skygeek.com/', 'Origin': 'https://skygeek.com' }
-        });
-        products.push({
-          name: data.name || 'No Name',
-          price: data.price || 'No Price',
-          url: `https://skygeek.com/product/${sku}` // Construct URL
-        });
-        console.log(`Fetched product for SKU ${sku}:`, { name: data.name, price: data.price });
-      } catch (error) {
-        console.error(`API error for SKU ${sku}:`, error.message);
-      }
-    }
+    const products = await page.evaluate(() => {
+      const items = [];
+      document.querySelectorAll('article.card').forEach(article => {
+        const sku = article.getAttribute('data-sku');
+        const name = article.querySelector('h4.card-title a')?.textContent.trim() || 'No Name';
+        const price = article.querySelector('.price--withoutTax')?.textContent.trim() || 'No Price';
+        if (sku && name && price) {
+          items.push({ sku, name, price, url: `https://skygeek.com${article.querySelector('a')?.getAttribute('href') || ''}` });
+        }
+      });
+      return items;
+    });
+
+    console.log('Found products:', products.length, products);
     res.json(products);
   } catch (error) {
     console.error('Scraping error:', error.message);
     res.status(500).json({ error: 'Scraping failed' });
+  } finally {
+    if (browser) await browser.close();
   }
 });
 
 app.get('/search', async (req, res) => {
-  const query = req.query.q;
-  try {
-    const { data: html } = await axios.get('https://skygeek.com/', {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    });
-    const $ = cheerio.load(html);
-    const skus = [];
-    $('.product').each((i, el) => {
-      const sku = $(el).attr('data-sku') || $(el).find('a').attr('href')?.match(/sellingSku=([^&]+)/)?.[1];
-      if (sku) skus.push(sku);
-    });
-    console.log('Found SKUs for search:', skus.length, skus);
-
-    const products = skus
-      .slice(0, 5) // Limit for PoC
-      .map(async sku => {
-        try {
-          const { data } = await axios.get(`https://api.skygeek.com/PublicApis/api/v0/SkyGeekDotComApi/SellingSkuData?sellingSku=${sku}`, {
-            headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://skygeek.com/', 'Origin': 'https://skygeek.com' }
-          });
-          return {
-            name: data.name || 'No Name',
-            price: data.price || 'No Price',
-            url: `https://skygeek.com/product/${sku}`
-          };
-        } catch (error) {
-          console.error(`API error for SKU ${sku}:`, error.message);
-          return null;
-        }
-      });
-    const results = (await Promise.all(products)).filter(p => p);
-    res.json(results);
-  } catch (error) {
-    console.error('Search error:', error.message);
-    res.status(500).json({ error: 'Search failed' });
-  }
+  res.status(501).json({ error: 'Search not implemented yet' }); // Placeholder
 });
 
 const PORT = process.env.PORT;
