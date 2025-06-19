@@ -20,6 +20,7 @@ app.get('/products', async (req, res) => {
     });
     res.json(products);
   } catch (error) {
+    console.error('Scraping error:', error);
     res.status(500).json({ error: 'Scraping failed' });
   }
 });
@@ -39,9 +40,13 @@ app.get('/search', async (req, res) => {
     });
     res.json(results);
   } catch (error) {
+    console.error('Search error:', error);
     res.status(500).json({ error: 'Search failed' });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server on port ${PORT}`));
+const PORT = process.env.PORT; // Remove fallback to 3000
+const HOST = '0.0.0.0'; // Explicitly bind to all interfaces
+app.listen(PORT, HOST, () => {
+  console.log(`Server running on http://${HOST}:${PORT}`);
+});
