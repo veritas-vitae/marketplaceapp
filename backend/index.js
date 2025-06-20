@@ -30,8 +30,9 @@ app.get('/products', async (req, res) => {
         const sku = article.getAttribute('data-sku');
         const name = article.querySelector('h4.card-title a')?.textContent.trim() || 'No Name';
         const price = article.querySelector('.price--withoutTax')?.textContent.trim() || 'No Price';
+        const href = article.querySelector('a')?.getAttribute('href') || '';
         if (sku && name && price) {
-          items.push({ sku, name, price, url: `https://skygeek.com${article.querySelector('a')?.getAttribute('href') || ''}` });
+          items.push({ sku, name, price, url: href.startsWith('http') ? href : `https://skygeek.com${href}` });
         }
       });
       return items;
@@ -58,7 +59,7 @@ app.get('/search', async (req, res) => {
   res.status(501).json({ error: 'Search not implemented yet' });
 });
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000; // Default to 3000 for local testing
 const HOST = '0.0.0.0';
 app.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
