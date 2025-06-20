@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "preinstall": "node install-puppeteer.js",
     "start": "node index.js"
   },
   "dependencies": {
+    "express": "^4.19.2",
     "axios": "^1.7.2",
     "cheerio": "^1.0.0-rc.12",
-    "express": "^4.19.2",
-    "puppeteer": "^24.10.2"
+    "puppeteer": "^22.12.1"
   }
 }
