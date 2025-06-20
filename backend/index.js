@@ -11,11 +11,11 @@ app.get('/', (req, res) => {
 app.get('/products', async (req, res) => {
   let browser;
   try {
-    console.log('Launching Puppeteer...');
+    console.log('Launching Puppeteer with auto-download...');
     browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined // Let Puppeteer manage the binary
+      executablePath: 'google-chrome-stable' // Fallback to system Chrome if available
     });
     const page = await browser.newPage();
     console.log('Navigating to https://skygeek.com/akzonobel/...');
