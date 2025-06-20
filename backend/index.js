@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
 const cors = require('cors');
 const app = express();
 
-app.use(cors()); // Enable CORS for all routes
+app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -23,7 +23,7 @@ app.get('/products', async (req, res) => {
     await page.setExtraHTTPHeaders({
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124'
     });
-    await page.goto('https://skygeek.com/akzonobel/', { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto('https://skygeek.com/akzonobel/', { waitUntil: 'networkidle', timeout: 120000 });
     console.log('Page loaded, evaluating content...');
 
     const products = await page.evaluate(() => {
@@ -33,8 +33,9 @@ app.get('/products', async (req, res) => {
         const name = article.querySelector('h4.card-title a')?.textContent.trim() || 'No Name';
         const price = article.querySelector('.price--withoutTax')?.textContent.trim() || 'No Price';
         const href = article.querySelector('a')?.getAttribute('href') || '';
+        const imgSrc = article.querySelector('img.card-image')?.getAttribute('src') || '';
         if (sku && name && price) {
-          items.push({ sku, name, price, url: href.startsWith('http') ? href : `https://skygeek.com${href}` });
+          items.push({ sku, name, price, url: href.startsWith('http') ? href : `https://skygeek.com${href}`, image: imgSrc.startsWith('//') ? `https:${imgSrc}` : imgSrc });
         }
       });
       return items;
