@@ -11,11 +11,11 @@ app.get('/', (req, res) => {
 app.get('/products', async (req, res) => {
   let browser;
   try {
-    console.log('Launching Puppeteer with custom executable...');
+    console.log('Launching Puppeteer...');
     browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-      executablePath: '/opt/render/project/src/backend/node_modules/puppeteer/.local-chromium/linux-137.0.7151.119/chrome-linux/chrome' // Adjust path if needed
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined // Let Puppeteer manage the binary
     });
     const page = await browser.newPage();
     console.log('Navigating to https://skygeek.com/akzonobel/...');
