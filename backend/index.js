@@ -21,7 +21,7 @@ app.get('/products', async (req, res) => {
     await page.setExtraHTTPHeaders({
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124'
     });
-    await page.goto('https://skygeek.com/akzonobel/', { waitUntil: 'networkidle2', timeout: 30000 });
+    await page.goto('https://skygeek.com/akzonobel/', { waitUntil: 'networkidle', timeout: 30000 });
     console.log('Page loaded, evaluating content...');
 
     const products = await page.evaluate(() => {
