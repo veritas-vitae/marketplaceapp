@@ -1,7 +1,9 @@
 const express = require('express');
 const { chromium } = require('playwright');
+const cors = require('cors');
 const app = express();
 
+app.use(cors()); // Enable CORS for all routes
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -59,7 +61,7 @@ app.get('/search', async (req, res) => {
   res.status(501).json({ error: 'Search not implemented yet' });
 });
 
-const PORT = process.env.PORT || 3000; // Default to 3000 for local testing
+const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';
 app.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
