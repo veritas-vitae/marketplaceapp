@@ -9,6 +9,6 @@
     "express": "^4.19.2",
     "axios": "^1.7.2",
     "cheerio": "^1.0.0-rc.12",
-    "puppeteer": "^22.12.1"
+    "playwright": "^1.47.0"
   }
 }

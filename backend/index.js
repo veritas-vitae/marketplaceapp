@@ -1,5 +1,5 @@
 const express = require('express');
-const puppeteer = require('puppeteer');
+const { chromium } = require('playwright');
 const app = express();
 
 app.use(express.json());
@@ -11,15 +11,16 @@ app.get('/', (req, res) => {
 app.get('/products', async (req, res) => {
   let browser;
   try {
-    console.log('Launching Puppeteer with auto-download...');
-    browser = await puppeteer.launch({
+    console.log('Launching Playwright...');
+    browser = await chromium.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-      executablePath: 'google-chrome-stable' // Fallback to system Chrome if available
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     });
     const page = await browser.newPage();
     console.log('Navigating to https://skygeek.com/akzonobel/...');
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124');
+    await page.setExtraHTTPHeaders({
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124'
+    });
     await page.goto('https://skygeek.com/akzonobel/', { waitUntil: 'networkidle2', timeout: 30000 });
     console.log('Page loaded, evaluating content...');
 
